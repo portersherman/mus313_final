@@ -40,7 +40,6 @@ function setup() {
   angles = [];
   touched = [];
   ripple = [];
-  // console.log(sizeX + " " + sizeY);
   for (var i = 0; i < sizeX; i++) {
   	for (var j = 0; j < sizeY; j++) {
   		angles[sizeX*j + i] = 0.0;
@@ -63,7 +62,7 @@ function draw() {
 	  	if ((imgX >= 0) && (imgY >= 0) && (imgX < sizeX) && (imgY < sizeY)) {
 	  		var delta = (mouseY - startY)/windowHeight;
 	  		if (touched[sizeX*imgY + imgX] == false) {
-	    		sendOsc('/touch', [imgX, imgY]);
+	    		sendOsc('/touch', [imgX, imgY, sizeX, sizeY]);
 	    	} else {
 	    		sendOsc('/angle', [angles[sizeX*imgY + imgX]]);
 	    	}
