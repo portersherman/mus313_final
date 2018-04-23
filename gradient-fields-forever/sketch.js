@@ -204,8 +204,9 @@ function disp() {
 
   			ripple[sizeX*j+i] = (totalDelta > 0.25);
 
-	  		if (Math.abs(totalDelta) < 0.01) {
+	  		if ((Math.abs(totalDelta) < 0.01) && (touched[sizeX*j+i] == true)) {
 	  			touched[sizeX*j+i] = false;	
+	  			sendOsc('/noteoff', [i, j]);
 	  		}
 	  		// sendOsc('/angle',[angles[sizeX*j + i]]);
 	  	}
