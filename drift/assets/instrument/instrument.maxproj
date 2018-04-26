@@ -2,7 +2,7 @@
 	"name" : "instrument",
 	"version" : 1,
 	"creationdate" : 3607281126,
-	"modificationdate" : 3607281158,
+	"modificationdate" : 3607590628,
 	"viewrect" : [ 25.0, 69.0, 300.0, 500.0 ],
 	"autoorganize" : 1,
 	"hideprojectwindow" : 0,
@@ -17,6 +17,11 @@
 			}
 ,
 			"voice.maxpat" : 			{
+				"kind" : "patcher",
+				"local" : 1
+			}
+,
+			"colorSin.maxpat" : 			{
 				"kind" : "patcher",
 				"local" : 1
 			}
