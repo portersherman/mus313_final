@@ -4,13 +4,13 @@ const maxTrailLength = 50;
 const trackMouse = false;
 const alignTime = 100;
 const dev = false;
-const arrowSize = "small";
+const arrowSize = "md";
 const spawnProb = 0.005;
 const dispLength = 1000;
 const maxSize = 100;
 
 // p5
-var arrow, arrow_red, arrow_red_desat;
+var arrow;
 var remainderX, remainderY;
 var sizeX, sizeY;
 var angles;
@@ -21,7 +21,7 @@ var next;
 var touched;
 var touchedAt;
 var ripple;
-var holes;
+var poles;
 var relAngles;
 var startX, startY;
 var posX, posY, initPosY;
@@ -39,54 +39,39 @@ var connect_to_this_ip = '127.0.0.1';
 var outgoingPort = 3334;
 
 function preload() {
-	arrow = (arrowSize == "small") ? loadImage("assets/arrow_sm.png") : loadImage("assets/arrow_md.png");
-	arrow_red = (arrowSize == "small") ? loadImage("assets/arrow_red_sm.png") : loadImage("assets/arrow_red_md.png");
-	arrow_red_desat = (arrowSize == "small") ? loadImage("assets/arrow_red_desat_sm.png") : loadImage("assets/arrow_red_desat_md.png");
-	imgSize = (arrowSize == "small") ? 50 : 75;
+	arrow = "↣";
+	imgSize = (arrowSize == "sm") ? 50 : 75;
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  noCursor();
-  remainderX = windowWidth % imgSize;
-  remainderY = windowHeight % imgSize;
-  sizeX = Math.floor(windowWidth / imgSize);
-  sizeY = Math.floor(windowHeight / imgSize);
-  startX = 0;
-  startY = 0;
-  oldPosX = [];
-  oldPosY = [];
-  angles = [];
-  touched = [];
-  touchedAt = [];
-  ripple = [];
-  holes = [];
-  trails = [];
-  trailing = false;
-  next = 0;
-  start = dev;
-  gColor = color(29, 11, 50);
-  colorDisc = 40;
+  	createCanvas(windowWidth, windowHeight);
+	noCursor();
+  	startX = 0;
+	startY = 0;
+	oldPosX = [];
+	oldPosY = [];
+	angles = [];
+	touched = [];
+	touchedAt = [];
+	ripple = [];
+	poles = [];
+	trails = [];
+	trailing = false;
+	next = 0;
+	start = dev;
+	gColor = color(29, 11, 50);
+	colorDisc = 40;
+	spawns = new Trail("spawn");
 
-  relAngles = { "up": (1/2)*PI,
-				"down": (3/2)*PI,
-				"left": 0,
-				"right": PI }
+	relAngles = { 	"up": (1/2)*PI,
+					"down": (3/2)*PI,
+					"left": 0,
+					"right": PI }
 
-  spawns = new Trail("spawn");
-  for (var i = 0; i < sizeX; i++) {
-  	for (var j = 0; j < sizeY; j++) {
-  		angles[sizeX*j + i] = Math.random() * (2*PI);
-  		touched[sizeX*j + i] = false;
-  		touchedAt[sizeX*j + i] = -1;
-  		ripple[sizeX*j + i] = false;
-  		holes[sizeX*j + i] = (Math.random() < 0.01);
-  		// image(arrow, i*imgSize + remainderX / 2, j*imgSize + remainderY/2);
-  	}
-  }
-  controllerX = -1;
-  controllerY = -1;
-  setupOsc(incomingPort, outgoingPort, connect_to_this_ip);
+	setupMesh();	
+	controllerX = -1;
+	controllerY = -1;
+	setupOsc(incomingPort, outgoingPort, connect_to_this_ip);
 }
 
 function draw() {
@@ -108,6 +93,51 @@ function draw() {
   	}
 }
 
+function setupMesh(oldAngles, oldTouched, oldTouchedAt, oldRipple, oldPoles) {
+	remainderX = windowWidth % imgSize;
+  	remainderY = windowHeight % imgSize;
+  	sizeX = Math.floor(windowWidth / imgSize);
+  	sizeY = Math.floor(windowHeight / imgSize);
+	for (var i = 0; i < sizeX; i++) {
+	  	for (var j = 0; j < sizeY; j++) {
+	  		if (oldAngles) {
+	  			if (oldAngles[sizeX*j + i]) {
+	  				angles[sizeX*j + i] = oldAngles[sizeX*j + i];
+	  			} else {
+	  				angles[sizeX*j + i] = Math.random() * (2*PI);
+	  			}
+	  		} else {
+  				angles[sizeX*j + i] = Math.random() * (2*PI);
+  			}
+
+  			if (oldTouched) {
+	  			touched[sizeX*j + i] = oldTouched[sizeX*j + i];
+	  		} else {
+				touched[sizeX*j + i] = false;
+	  		}
+
+	  		if (oldTouchedAt) {
+	  			touchedAt[sizeX*j + i] = oldTouchedAt[sizeX*j + i];
+	  		} else {
+	  			touchedAt[sizeX*j + i] = -1;
+	  		}
+
+	  		if (oldRipple) {
+	  			ripple[sizeX*j + i] = oldRipple[sizeX*j + i];
+	  		} else {
+				ripple[sizeX*j + i] = false;
+	  		}
+
+	  		if (oldPoles) {
+	  			poles[sizeX*j + i] = oldPoles[sizeX*j + i];
+	  		} else {
+				poles[sizeX*j + i] = (Math.random() < 0.01);
+	  		}
+	  		// image(arrow, i*imgSize + remainderX / 2, j*imgSize + remainderY/2);
+	  	}
+	}
+}
+
 function drawBackground(color) {
 	var r, g, b;
 	r = color.levels[0];
@@ -125,13 +155,13 @@ function drawBackground(color) {
 	} else if (frameCount < 2*dispLength/3) {
 		background(r, g, b);
 	} else if (frameCount < dispLength) {
-		background(	r + ((255 - r)*((frameCount - 2*dispLength/3)/(dispLength/3))), 
-					g + ((255 - g)*((frameCount - 2*dispLength/3)/(dispLength/3))),
-					b + ((255 - b)*((frameCount - 2*dispLength/3)/(dispLength/3))));
+		background(	r + ((127 - r)*((frameCount - 2*dispLength/3)/(dispLength/3))), 
+					g + ((127 - g)*((frameCount - 2*dispLength/3)/(dispLength/3))),
+					b + ((127 - b)*((frameCount - 2*dispLength/3)/(dispLength/3))));
 	} else if (frameCount < dispLength*2) {
-		background(	r + ((255 - r)*(1 - (frameCount-dispLength)/(dispLength))), 
-					g + ((255 - g)*(1 - (frameCount-dispLength)/(dispLength))),
-					b + ((255 - b)*(1 - (frameCount-dispLength)/(dispLength))));
+		background(	r + ((127 - r)*(1 - (frameCount-dispLength)/(dispLength))), 
+					g + ((127 - g)*(1 - (frameCount-dispLength)/(dispLength))),
+					b + ((127 - b)*(1 - (frameCount-dispLength)/(dispLength))));
 	} else {
 		background(color);
 	}
@@ -167,9 +197,9 @@ function drawMesh() {
 	  	for (var j = 0; j < sizeY; j++) {
 	  		push();
 			translate((i+0.5)*imgSize + remainderX/2, (j+0.5)*imgSize + remainderY/2);	
-			if (holes[sizeX*j+i]) {
-				stroke(255);
-				strokeWeight(2);
+			if (poles[sizeX*j+i]) {
+				stroke(127);
+				strokeWeight(3);
 				fill(255, 0);
 				ellipseMode(CENTER);
 				ellipse(0, 0, imgSize/2, imgSize/2);
@@ -177,13 +207,26 @@ function drawMesh() {
 				rotate(angles[sizeX*j + i]);
 				imageMode(CENTER);	
 				if (touched[sizeX*j+i]) {
-					var alpha = clamp255(255 - (255 * (Math.abs(angles[sizeX*j + i]) / PI)));
-					image(arrow_red, 0, 0);
+					fill(0);
+					noStroke();
+					textAlign(CENTER);
+					textSize(imgSize);
+					text(arrow, 0, imgSize/4);
 				} else {
 					if (ripple[sizeX*j+i]) {
-						image(arrow_red_desat, 0, 0);
+						fill(127);
+						noStroke();
+						textAlign(CENTER);
+						textSize(imgSize);
+						text(arrow, 0, imgSize/4);
+						//image(arrow_rippled, 0, 0);
 					} else {
-						image(arrow, 0, 0);
+						fill(255);
+						noStroke();
+						textAlign(CENTER);
+						textSize(imgSize);
+						text(arrow, 0, imgSize/4);
+						//image(arrow, 0, 0);
 					}
 				}
 			}
@@ -253,7 +296,7 @@ function spawn() {
 }
 
 function precise(x) {
-  return Number.parseFloat(x).toPrecision(4);
+  	return Number.parseFloat(x).toPrecision(4);
 }
 
 function clamp255(val) {
@@ -280,6 +323,16 @@ function mouseMoved() {
 	controllerY = -1;
 }
 
+function doubleClicked() {
+  	var fs = fullscreen();
+   	fullscreen(!fs);
+}
+
+function windowResized() {
+  	resizeCanvas(windowWidth, windowHeight);
+  	setupMesh(angles, touched, touchedAt, ripple, poles);
+}
+
 function receiveOsc(address, value) {
 	console.log("received OSC: " + address + ", " + value);
 		
@@ -304,7 +357,7 @@ function getAngleFromPixel(x, y) {
 function disp() {
 	for (var i = 0; i < sizeX; i++) {
 	  	for (var j = 0; j < sizeY; j++) {
-	  		angles[sizeX*j + i] += (Math.random()-0.5) * 0.01;
+	  		// angles[sizeX*j + i] += (Math.random()-0.5) * 0.01;
 	  		var totalDelta = 0;
 	  		
 	  		// up
@@ -321,7 +374,7 @@ function disp() {
 
   			ripple[sizeX*j+i] = (totalDelta > 0.25);
 
-	  		if ((Math.abs(totalDelta) < 0.01) && (touched[sizeX*j+i] == true)) {
+	  		if ((Math.abs(totalDelta) < 0.05) && (touched[sizeX*j+i] == true)) {
 	  			if (millis() - touchedAt[sizeX*j+i] > 1000) {
 	  				touched[sizeX*j+i] = false;	
 	  				sendOsc('/noteoff', [i, j]);
@@ -334,10 +387,10 @@ function disp() {
 
 function propDelta(cur, neighbor, rel) {
 	var delta;
-	if (holes[neighbor]) {
+	if (poles[neighbor]) {
 		delta = relAngles[rel] - angles[cur];
-		angles[cur] += delta / alignTime;
-		return delta;
+		angles[cur] += delta;
+		return 0;
 	} else {
 		delta = angles[neighbor] - angles[cur];
 	}
@@ -350,7 +403,7 @@ function propDelta(cur, neighbor, rel) {
 	} else {
 		angles[cur] += delta / (100 * alignTime);
 	}
-	return delta;
+	return Math.abs(delta);
 }
 
 function wrapX(x) {
@@ -416,8 +469,12 @@ Point.prototype.display = function(prev) {
 	// tint(255, this.lifetime);
 	// console.log(this.lifetime);
 	var newColor = color(this.color.levels[0]+colorDisc, this.color.levels[1]+colorDisc, this.color.levels[2]+colorDisc);
+	if (Math.sqrt((mouseX - wrapX(this.x))*(mouseX - wrapX(this.x)) + (mouseY - wrapY(this.y))*(mouseY - wrapY(this.y))) < this.size) {
+		fill(255);
+	} else {
+		fill(newColor);
+	}
 	noStroke();
-	fill(newColor);
 	ellipse(wrapX(this.x), wrapY(this.y), this.size, this.size);
 	this.update();
 	if (prev) {
