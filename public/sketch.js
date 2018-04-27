@@ -40,7 +40,7 @@ function setup() {
 	poles = [];
 	holes = [];
 	mode = "prod";
-	processURL(new URL(window.location.href));
+	// processURL(new URL(window.location.href));
 	start = (mode == "dev");
 	nodeSize = (arrowSize == "lg") ? 100 : 75;
 	globalColor = color(29, 11, 50);
