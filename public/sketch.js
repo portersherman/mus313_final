@@ -128,7 +128,7 @@ function setupMesh(oldAngles, oldTouched, oldTouchedAt, oldRipple, oldPoles, old
 	  		if (oldHoles) {
 	  			holes[sizeX*j + i] = oldHoles[sizeX*j + i];
 	  		} else {
-				holes[sizeX*j + i] = (Math.random() < 0.005);
+				holes[sizeX*j + i] = (Math.random() < 0.01);
 	  		}
 	  		// image(arrow, i*nodeSize + remainderX / 2, j*nodeSize + remainderY/2);
 	  	}
@@ -152,21 +152,21 @@ function drawBackground(color) {
 	} else if (frameCount < 2*dispLength/3) {
 		background(r, g, b);
 	} else if (frameCount < dispLength) {
-		background(	r + ((127 - r)*((frameCount - 2*dispLength/3)/(dispLength/3))), 
-					g + ((127 - g)*((frameCount - 2*dispLength/3)/(dispLength/3))),
-					b + ((127 - b)*((frameCount - 2*dispLength/3)/(dispLength/3))));
+		background(	r + ((255 - r)*((frameCount - 2*dispLength/3)/(dispLength/3))), 
+					g + ((255 - g)*((frameCount - 2*dispLength/3)/(dispLength/3))),
+					b + ((255 - b)*((frameCount - 2*dispLength/3)/(dispLength/3))));
 	} else if (frameCount < dispLength*2) {
-		background(	r + ((127 - r)*(1 - (frameCount-dispLength)/(dispLength))), 
-					g + ((127 - g)*(1 - (frameCount-dispLength)/(dispLength))),
-					b + ((127 - b)*(1 - (frameCount-dispLength)/(dispLength))));
+		background(	r + ((255 - r)*(1 - (frameCount-dispLength)/(dispLength))), 
+					g + ((255 - g)*(1 - (frameCount-dispLength)/(dispLength))),
+					b + ((255 - b)*(1 - (frameCount-dispLength)/(dispLength))));
 	} else {
 		background(color);
 	}
 }
 
 function drawWelcome() {
-	var titleFactor = (.25) * (frameCount) + 100;
-	var subTitleFactor = (.025) * (frameCount) + 25;
+	var titleFactor = (.25) * (frameCount) + 200;
+	var subTitleFactor = (.05) * (frameCount) + 200;
 	if (frameCount < dispLength/3) {
 		fill(255, 255*(frameCount)/(dispLength/3));
 	} else if (frameCount < 2*dispLength/3) {
@@ -177,8 +177,8 @@ function drawWelcome() {
 		start = true;
 		return;
 	}
-	writeCentered("ADRIFT", windowHeight/2 - 25, titleFactor, 50);
-	writeCentered("BY PORTER SHERMAN", windowHeight/2 + 25, subTitleFactor, 25);
+	writeCentered("ADRIFT", windowHeight/2 - 15, titleFactor, 50);
+	writeCentered("BY PORTER SHERMAN", windowHeight/2 + 35, subTitleFactor, 25);
 }
 
 function writeCentered(string, y, factor, size) {
@@ -190,24 +190,33 @@ function writeCentered(string, y, factor, size) {
 		return;
 	}
 	for (var i = 0; i < length; i++) {
-		text(string.charAt(i), windowWidth/2+((i+1/2-length/2)*factor), y);
+		text(string.charAt(i), windowWidth/2+((i+1/2-length/2)/(length/2)*factor), y);
 	}
 }
 
 function drawMesh() {
+	var fade = (frameCount < dispLength*2);
 	for (var i = 0; i < sizeX; i++) {
 	  	for (var j = 0; j < sizeY; j++) {
 	  		push();
 			translate((i+0.5)*nodeSize + remainderX/2, (j+0.5)*nodeSize + remainderY/2);	
 			if (holes[sizeX*j+i]) {
-				stroke(127);
+				if (fade) {
+					stroke(127 + ((128)*(1 - (frameCount-dispLength)/(dispLength))));
+				} else {
+					stroke(127);
+				}
 				strokeWeight(3);
-				fill(255, 0);
+				noFill();
 				ellipseMode(CENTER);
 				ellipse(0, 0, nodeSize/2, nodeSize/2);
 			} else if (poles[sizeX*j+i]) {
 				noStroke();
-				fill(127);
+				if (fade) {
+					fill(127 + ((128)*(1 - (frameCount-dispLength)/(dispLength))));
+				} else {
+					fill(127);
+				}
 				ellipseMode(CENTER);
 				ellipse(0, 0, nodeSize/2, nodeSize/2);
 			} else {
@@ -221,7 +230,11 @@ function drawMesh() {
 					text(arrow, 0, nodeSize/4);
 				} else {
 					if (ripple[sizeX*j+i]) {
-						fill(127);
+						if (fade) {
+							fill(127 + ((128)*(1 - (frameCount-dispLength)/(dispLength))));
+						} else {
+							fill(127);
+						}
 						noStroke();
 						textAlign(CENTER);
 						textSize(nodeSize);
