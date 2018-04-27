@@ -24,8 +24,8 @@ io.sockets.on('connection', function (socket) {
   	});
 	socket.on('disconnect', function(){
 		if (isConnected) {
-			oscClient.kill();
-			oscServer.kill();
+			// oscClient.kill();
+			// oscServer.kill();
 		}
   	});
 });
