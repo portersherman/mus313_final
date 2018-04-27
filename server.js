@@ -3,11 +3,9 @@ var app = express();
 var server = app.listen(8000);
 app.use(express.static("public"));
 
-var osc = require('node-osc'),
-    io = require('socket.io').listen(8080);
+var osc = require('node-osc'), io = require('socket.io').listen(8080);
 
 var oscServer, oscClient;
-
 var isConnected = false;
 
 io.sockets.on('connection', function (socket) {
@@ -26,8 +24,8 @@ io.sockets.on('connection', function (socket) {
   	});
 	socket.on('disconnect', function(){
 		if (isConnected) {
-			oscServer.kill();
 			oscClient.kill();
+			oscServer.kill();
 		}
   	});
 });
