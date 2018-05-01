@@ -26,4 +26,8 @@ function setupOsc(oscPortIn, oscPortOut, whichIP) {
 			receiveOsc(msg[0], msg.splice(1));
 		}
 	});
+	socket.on('disconnect', function() {
+		socket.disconnect();
+		isConnected = false;
+	})
 }

@@ -15,9 +15,10 @@ var relAnglesPoles, relAnglesHoles;
 var startX, startY;
 var controllerX, controllerY;
 var start;
-var nodeSize, globalColor, colorDisc;
+var nodeSize, globalColor;
 var mode;
 var arrowSize;
+var manip;
 
 // osc
 var incomingPort = 3333;
@@ -44,7 +45,6 @@ function setup() {
 	start = (mode == "dev");
 	nodeSize = (arrowSize == "lg") ? 100 : 75;
 	globalColor = color(29, 11, 50);
-	colorDisc = 50;
 	spawns = new Chain("spawn", maxChainLength);
 
 	relAnglesPoles = { 	"up": (1/2)*PI,
@@ -60,7 +60,9 @@ function setup() {
 	setupMesh();	
 	controllerX = -1;
 	controllerY = -1;
+	manip = false;
 	setupOsc(incomingPort, outgoingPort, connect_to_this_ip);
+	// setupOsc(outgoingPort, incomingPort, connect_to_this_ip);
 }
 
 function draw() {
@@ -259,7 +261,7 @@ function manipMesh() {
 	var imgX, imgY;
 	imgX = Math.floor((startX - remainderX/2) / nodeSize);
   	imgY = Math.floor((startY - remainderY/2) / nodeSize);
-  	if ((imgX >= 0) && (imgY >= 0) && (imgX < sizeX) && (imgY < sizeY) && (!spawns.isIntersected())) {
+  	if ((imgX >= 0) && (imgY >= 0) && (imgX < sizeX) && (imgY < sizeY) && (manip)) {
   		var delta = (mouseY - startY)/windowHeight;
   		if (touched[sizeX*imgY + imgX] == false) {
     		sendOsc('/touch', [imgX, imgY, sizeX, sizeY]);
@@ -283,12 +285,12 @@ function drawCursor() {
 function spawn() {
 	if (Math.random() < spawnProb) {
 		sendOsc("/spawn", [1]);
-		spawns.add(Math.random()*(windowWidth - 100) + 50, Math.random()*(windowHeight - 100) + 50, maxSize, globalColor, maxLifetime);
+		spawns.add(Math.random()*(windowWidth - 100) + 50, Math.random()*(windowHeight - 100) + 50, maxSize, maxLifetime, globalColor);
 	}
 }
 
 function drawSpawns() {
-	spawns.draw(true, colorDisc, remainderX, remainderY);
+	spawns.draw(true, remainderX, remainderY);
 }
 
 function precise(x) {
@@ -300,6 +302,8 @@ function clamp255(val) {
 }
 
 function mousePressed() {
+	manip = (!spawns.isIntersected());
+	spawns.trig();
 	startX = mouseX;
 	startY = mouseY;
 }

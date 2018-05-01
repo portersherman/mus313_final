@@ -4,28 +4,33 @@ var server = app.listen(8000);
 app.use(express.static("public"));
 
 var osc = require('node-osc'), io = require('socket.io').listen(8080);
+io.set('log level', 1);
 
-var oscServer, oscClient;
-var isConnected = false;
+var oscServers = {}, oscClients = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.on("config", function (obj) {
-		isConnected = true;
-    	oscServer = new osc.Server(obj.server.port, obj.server.host);
-	    oscClient = new osc.Client(obj.client.host, obj.client.port);
-	    oscClient.send('/status', socket.id + ' connected');
-		oscServer.on('message', function(msg, rinfo) {
+		oscServers[socket.id] = new osc.Server(obj.server.port, obj.server.host);
+	    oscClients[socket.id] = new osc.Client(obj.client.host, obj.client.port);
+	    oscClients[socket.id].send('/status', socket.id + ' connected' + " to port " + obj.server.port);
+	    console.log(oscClients);
+		oscServers[socket.id].on('message', function(msg, rinfo) {
 			io.sockets.emit("message", msg);
 		});
 		socket.emit("connected", 1);
 	});
  	socket.on("message", function (obj) {
-		oscClient.send.apply(oscClient, obj);
+ 		console.log(obj);
+ 		Object.keys(oscClients).forEach((k) => {
+ 			// console.log(oscClients[k]);
+ 			oscClients[k].send(obj);
+ 		});
   	});
-	socket.on('disconnect', function(){
-		if (isConnected) {
-			// oscClient.kill();
-			// oscServer.kill();
-		}
+	socket.on('disconnect', function() {
+		// console.log(socket);
+		oscServers[socket.id].kill();
+		oscClients[socket.id].kill();
+		delete oscClients[socket.id];
+		delete oscServers[socket.id];
   	});
 });
