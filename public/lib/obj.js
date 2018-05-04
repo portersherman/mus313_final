@@ -101,6 +101,8 @@ function Chain(type, length) {
 	this.maxChainLength = length;
 	this.intersected = false;
 	this.intersections = [];
+	this.xInt = -1;
+	this.yInt = -1;
 }
 
 Chain.prototype.isIntersected = function() {
@@ -132,13 +134,15 @@ Chain.prototype.draw = function(link, remainderX, remainderY) {
 		var nowIntersected = (this.points[i].display(remainderX, remainderY));
 		intersected = (nowIntersected) || intersected;
 		if (nowIntersected) {
+			this.xInt = this.points[i].x;
+			this.yInt = this.points[i].y;
 			this.intersections[i] = true;
 		} else {
 			this.intersections[i] = false;
 		}
 	}
 	if ((this.intersected != intersected) && (intersected == false)) {
-		sendOsc('/intersect', [1]);
+		sendOsc('/intersect', [wrapX(this.xInt, remainderX, remainderY), wrapY(this.yInt, remainderX, remainderY), windowWidth, windowHeight]);
 	}
 	this.intersected = intersected;
 	this.drawn = true;
