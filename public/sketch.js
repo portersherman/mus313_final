@@ -2,7 +2,7 @@
 const maxLifetime = 1000;
 const maxChainLength = 50;
 const alignTime = 100;
-const spawnProb = 0.0125;
+const spawnProb = 0.00625;
 const dispLength = 1000;
 const maxSize = 100;
 
